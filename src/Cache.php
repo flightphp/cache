@@ -19,42 +19,42 @@ class Cache
      *
      * @var string
      */
-    private $cacheDir;
+    protected $cacheDir;
 
     /**
      * Cache file name
      *
      * @var string
      */
-    private $cacheFilename;
+    protected $cacheFilename;
 
     /**
      * Cache file name, hashed with sha1. Used as an actual file name
      *
      * @var string
      */
-    private $cacheFilenameHashed;
+    protected $cacheFilenameHashed;
 
     /**
      * Cache file extension
      *
      * @var string
      */
-    private $cacheFileExtension;
+    protected $cacheFileExtension;
 
     /**
      * Holds current cache
      *
      * @var array<string,mixed>
      */
-    private $cacheArray;
+    protected $cacheArray;
 
     /**
      * If true, cache expire after one second
      *
      * @var bool
      */
-    private $devMode;
+    protected $devMode = false;
 
     /**
      * Cache constructor.
@@ -65,12 +65,11 @@ class Cache
      *
      * @throws \Exception if there is a problem loading the cache
      */
-    public function __construct($cacheDirPath = "cache/", $cacheFileName = "defaultcache", $cacheFileExtension = ".cache.php")
+    public function __construct(string $cacheDirPath = "cache/", string $cacheFileName = "defaultcache", string $cacheFileExtension = ".cache.php")
     {
         $this->setCacheFilename($cacheFileName);
         $this->setCacheDir($cacheDirPath);
         $this->setCacheFileExtension($cacheFileExtension);
-        $this->setDevMode(false);
 
         $this->reloadFromDisc();
     }
@@ -82,38 +81,30 @@ class Cache
      *
      * @return array<string,mixed> array filled with data
      */
-    private function loadCacheFile()
+    protected function loadCacheFile()
     {
         $filepath = $this->getCacheFilePath();
 
-        if (($fp = fopen($filepath, "r+")) === false) {
-            throw new \Exception("Could not fopen $filepath");
-        }
+        $fp = fopen($filepath, "r+");
 
         if (flock($fp, LOCK_SH)) {
             $file = fread($fp, filesize($filepath));
             flock($fp, LOCK_UN);
         } else {
-            throw new \Exception("Could not get the lock for $filepath");
+            throw new \Exception("Could not get the lock for $filepath"); // @codeCoverageIgnore
         }
         fclose($fp);
 
-
-        if (!$file) {
-            unlink($filepath);
-            throw new \Exception("Cannot read cache file! ({$this->getCacheFilename()})");
-        }
-
         // Remove the first line which prevents direct access to the file
         $file = $this->stripFirstLine($file);
-        $data = unserialize($file);
+        $data = @unserialize($file);
 
         if ($data === false) {
             unlink($filepath);
             throw new \Exception("Cannot unserialize cache file, cache file deleted. ({$this->getCacheFilename()})");
         }
 
-        if (!isset($data["hash-sum"])) {
+        if (isset($data["hash-sum"]) === false) {
             unlink($filepath);
             throw new \Exception("No hash found in cache file, cache file deleted");
         }
@@ -136,22 +127,45 @@ class Cache
      *
      * @return $this
      */
-    private function saveCacheFile()
-    {
-        if (!file_exists($this->getCacheDir())) {
-            @mkdir($this->getCacheDir());
-        }
+    protected function saveCacheFile()
+{
+		if (file_exists($this->getCacheDir()) === false) {
+			mkdir($this->getCacheDir(), 0777, true);
+		}
 
-        $cache = $this->cacheArray;
-        $cache["hash-sum"] = $this->getStringHash(serialize($cache));
-        $data = serialize($cache);
-        $firstLine = '<?php die("Access denied") ?>' . PHP_EOL;
-        if (file_put_contents($this->getCacheFilePath(), $firstLine . $data, LOCK_EX) === false) {
-            throw new \Exception("Cannot save cache");
-        }
+		$cache = $this->cacheArray;
+		$cache["hash-sum"] = $this->getStringHash(serialize($cache));
+		$data = serialize($cache);
+		$firstLine = '<?php die("Access denied") ?>' . PHP_EOL;
+		$filePath = $this->getCacheFilePath();
 
-        return $this;
-    }
+		$fp = fopen($filePath, 'c');
+		if ($fp === false) {
+			throw new \Exception("Cannot open cache file for writing"); // @codeCoverageIgnore
+		}
+
+		if (flock($fp, LOCK_EX)) {
+			ftruncate($fp, 0);
+			rewind($fp);
+			if (fwrite($fp, $firstLine . $data) === false) {
+				// @codeCoverageIgnoreStart
+				flock($fp, LOCK_UN);
+				fclose($fp);
+				throw new \Exception("Cannot write to cache file");
+				// @codeCoverageIgnoreEnd
+			}
+			fflush($fp);
+			flock($fp, LOCK_UN);
+		} else {
+			// @codeCoverageIgnoreStart
+			fclose($fp);
+			throw new \Exception("Cannot lock cache file for writing");
+			// @codeCoverageIgnoreEnd
+		}
+
+		fclose($fp);
+		return $this;
+	}
 
     /**
      * Stores $data under $key for $expiration seconds
@@ -159,25 +173,21 @@ class Cache
      *
      * @param string $key key associated with the current data
      * @param mixed $data data to store
-     * @param int $expiration number of seconds before the $key expires
+     * @param float $expiration number of seconds before the $key expires
      * @param bool $permanent if true, this item will not be automatically cleared after expiring
      *
      * @throws \Exception if the file cannot be saved
      *
      * @return $this
      */
-    public function store($key, $data, $expiration = 60, $permanent = false)
+    public function store(string $key, $data, float $expiration = 60, bool $permanent = false)
     {
-        if (!is_string($key)) {
-            throw new \InvalidArgumentException('$key must be a string, got type "' . get_class($key) . '" instead');
-        }
-
         if ($this->isDevMode()) {
-            $expiration = 1;
+            $expiration = 0.1;
         }
 
         $storeData = [
-            "time" => time(),
+            "time" => microtime(true),
             "expire" => $expiration,
             "data" => $data,
             "permanent" => $permanent
@@ -198,11 +208,11 @@ class Cache
      *
      * @return mixed|null returns data if $key is valid and not expired, NULL otherwise
      */
-    public function retrieve($key, $meta = false)
+    public function retrieve(string $key, bool $meta = false)
     {
         $this->eraseExpired();
 
-        if (!isset($this->cacheArray[$key])) {
+        if (isset($this->cacheArray[$key]) === false) {
             return null;
         }
 
@@ -232,16 +242,16 @@ class Cache
      *
      * @param string $key The cache key
      * @param callable $refreshCallback Callback called when data needs to be refreshed. Should return data to be cached.
-     * @param int $cacheTime Cache time. Defaults to 60
+     * @param float $cacheTime Cache time. Defaults to 60
      * @param bool $meta If true, returns data with meta. @see retrieve
      *
      * @throws \Exception if the file cannot be saved
      *
      * @return mixed|null Data currently stored under key
      */
-    public function refreshIfExpired($key, $refreshCallback, $cacheTime = 60, $meta = false)
+    public function refreshIfExpired(string $key, callable $refreshCallback, float $cacheTime = 60, bool $meta = false)
     {
-        if ($this->isExpired($key)) {
+        if ($this->isExpired($key) === true) {
             $this->store($key, $refreshCallback(), $cacheTime);
         }
 
@@ -257,9 +267,9 @@ class Cache
      *
      * @return bool true if $key was found and removed, false otherwise
      */
-    public function eraseKey($key)
+    public function eraseKey(string $key)
     {
-        if (!$this->isCached($key, false)) {
+        if ($this->isCached($key, false) === false) {
             return false;
         }
 
@@ -280,7 +290,7 @@ class Cache
         $counter = 0;
 
         foreach ($this->cacheArray as $key => $value) {
-            if (!$value["permanent"] && $this->isExpired($key, false)) {
+            if (empty($value["permanent"]) && $this->isExpired($key, false)) {
                 $this->eraseKey($key);
                 $counter++;
             }
@@ -317,13 +327,13 @@ class Cache
      *
      * @return bool
      */
-    public function isExpired($key, $eraseExpired = true)
+    public function isExpired(string $key, bool $eraseExpired = true)
     {
-        if ($eraseExpired) {
+        if ($eraseExpired === true) {
             $this->eraseExpired();
         }
 
-        if (!$this->isCached($key, false)) {
+        if ($this->isCached($key, false) === false) {
             return true;
         }
 
@@ -343,31 +353,33 @@ class Cache
      *
      * @return bool
      */
-    public function isCached($key, $eraseExpired = true)
+    public function isCached(string $key, bool $eraseExpired = true)
     {
-        if ($eraseExpired) {
+        if ($eraseExpired === true) {
             $this->eraseExpired();
         }
 
-        return isset($this->cacheArray[$key]);
+        return isset($this->cacheArray[$key]) === true;
     }
 
     /**
      * Checks if the timestamp expired
      *
-     * @param int $timestamp timestamp
-     * @param int $expiration number of seconds after the timestamp expires
+     * @param int $timestamp timestamp in milliseconds
+     * @param float $expiration number of milliseconds after the timestamp expires
      *
      * @return bool true if the timestamp expired, false otherwise
      */
-    private function isTimestampExpired($timestamp, $expiration)
+    protected function isTimestampExpired(float $timestamp, float $expiration)
     {
-        $timeDiff = time() - $timestamp;
+        $timeDiff = microtime(true) - $timestamp;
         return $timeDiff >= $expiration;
     }
 
     /**
      * Prints cache file using var_dump, useful for debugging
+	 * 
+	 * @codeCoverageIgnore
 	 * 
 	 * @return void
      */
@@ -389,7 +401,7 @@ class Cache
     public function reloadFromDisc()
     {
         // Try to load the cache, otherwise create a empty array
-        $this->cacheArray = is_readable($this->getCacheFilePath()) ? $this->loadCacheFile() : [];
+        $this->cacheArray = is_readable($this->getCacheFilePath()) === true ? $this->loadCacheFile() : [];
     }
 
     /**
@@ -401,12 +413,8 @@ class Cache
      *
      * @return string MD5 hash
      */
-    private function getStringHash($str)
+    protected function getStringHash(string $str)
     {
-        if (!is_string($str)) {
-            throw new \InvalidArgumentException('$key must be a string, got type "' . get_class($str) . '" instead');
-        }
-
         return md5($str);
     }
 
@@ -420,7 +428,7 @@ class Cache
      *
      * @return string stripped text without the first line or false on failure
      */
-    private function stripFirstLine($str)
+    protected function stripFirstLine($str)
     {
         $position = strpos($str, "\n");
 
@@ -450,7 +458,7 @@ class Cache
      *
      * @return $this
      */
-    public function setCacheDir($cacheDir)
+    public function setCacheDir(string $cacheDir)
     {
         // Add "/" to the end if its not here
         if (substr($cacheDir, -1) !== "/") {
@@ -491,12 +499,8 @@ class Cache
      *
      * @return $this
      */
-    public function setCacheFilename($cacheFilename)
+    public function setCacheFilename(string $cacheFilename)
     {
-        if (!is_string($cacheFilename)) {
-            throw new \InvalidArgumentException('$key must be a string, got type "' . get_class($cacheFilename) . '" instead');
-        }
-
         $this->cacheFilename = $cacheFilename;
         $this->cacheFilenameHashed = $this->getStringHash($cacheFilename);
         return $this;
@@ -519,7 +523,7 @@ class Cache
      *
      * @return $this
      */
-    public function setCacheFileExtension($cacheFileExtension)
+    public function setCacheFileExtension(string $cacheFileExtension)
     {
         // Add ".php" to the end if its not here
         if (substr($cacheFileExtension, -4) !== ".php") {
@@ -569,7 +573,7 @@ class Cache
      *
      * @return $this
      */
-    public function setDevMode($devMode)
+    public function setDevMode(bool $devMode)
     {
         $this->devMode = $devMode;
         return $this;
