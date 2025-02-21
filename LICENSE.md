@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2017 Wruczek <wruczekk@gmail.com>
+Copyright (c) 2017-2025 Wruczek <wruczekk@gmail.com>, n0nag0n <n0nag0n@sky-9.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
