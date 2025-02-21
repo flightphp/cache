@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace flight;
 
 /**
- * PhpFileCache - Light, simple and standalone PHP in-file caching class
+ * Cache - Light, simple and standalone PHP in-file caching class
  * This class was heavily inspired by Simple-PHP-Cache. Huge thanks to Christian Metz
  *
  * @license MIT
  * @author Wruczek https://github.com/Wruczek
+ * @author n0nag0n <n0nag0n@sky-9.com>
  */
 class Cache
 {
