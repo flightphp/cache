@@ -1,13 +1,19 @@
 <?php
 
-namespace Wruczek\PhpFileCache;
+declare(strict_types=1);
 
-class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
+namespace flight\tests;
 
-    const __TESTDIR = __DIR__ . "/../testcache/";
+use flight\Cache;
+use PHPUnit\Framework\TestCase;
+
+class CacheTest extends TestCase
+{
+    const __TEST_DIR = __DIR__ . "/../testcache/";
     protected $testarray;
 
-    protected function setUp() {
+    protected function setUp(): void
+    {
         $data = '';
         for ($i = 0; $i < 256; $i++) {
             $data .= chr($i);
@@ -26,16 +32,27 @@ class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
         ];
     }
 
-    public function testConstructor() {
-        $cache = new PhpFileCache("testdir/", "fileName", ".test.php");
+    public static function tearDownAfterClass(): void
+    {
+        foreach (glob(self::__TEST_DIR . "*") as $item) {
+            @unlink($item);
+        }
+
+        @rmdir(self::__TEST_DIR);
+    }
+
+    public function testConstructor()
+    {
+        $cache = new Cache("testdir/", "fileName", ".test.php");
 
         self::assertSame("fileName", $cache->getCacheFilename());
         self::assertSame("testdir/", $cache->getCacheDir());
         self::assertSame(".test.php", $cache->getCacheFileExtension());
     }
 
-    public function testPathRequirements() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testPathRequirements()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         $cache->setCacheDir("directory");
         $this->assertSame("directory/", $cache->getCacheDir()); // "/" should be added automatically
@@ -44,8 +61,9 @@ class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame(".test.php", $cache->getCacheFileExtension()); // ".php" should be added automatically
     }
 
-    public function testStore() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testStore()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         $cache->store("test", $this->testarray);
 
@@ -53,23 +71,28 @@ class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
         self::assertFalse($cache->isExpired("test"));
     }
 
-    public function testKeyCharacters() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testKeyCharacters()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         foreach (["'", "\"", "test & test", "óÓłć€$123"] as $key) {
             self::assertSame($this->testarray, $cache->store($key, $this->testarray)->retrieve($key));
         }
     }
 
-    public function testRetrieve() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testRetrieve()
+    {
+        $cache = new Cache(self::__TEST_DIR);
+
+        $cache->store("test", $this->testarray);
 
         self::assertEquals($this->testarray, $cache->retrieve("test"));
         self::assertFalse($cache->isExpired("test"));
     }
 
-    public function testRefreshIfExpired() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testRefreshIfExpired()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         $data = $cache->refreshIfExpired("refreshtest", function () {
             return $this->testarray;
@@ -82,8 +105,9 @@ class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
     }
 
 
-    public function testEraseExpired() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testEraseExpired()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         $cache->store("test", "test123", 1);
         sleep(2);
@@ -91,16 +115,18 @@ class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
         self::assertNull($cache->retrieve("test"));
     }
 
-    public function testOverride() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testOverride()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         $cache->store("test", "first");
         $cache->store("test", "second");
         self::assertSame("second", $cache->retrieve("test"));
     }
 
-    public function testClear() {
-        $cache = new PhpFileCache(self::__TESTDIR);
+    public function testClear()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
         $cache->store("test2", "test123");
 
@@ -115,13 +141,4 @@ class PhpFileCacheTest extends \PHPUnit_Framework_TestCase {
         self::assertNull($cache->retrieve("test3"));
         self::assertNull($cache->retrieve("test4"));
     }
-
-    public static function tearDownAfterClass() {
-        foreach (glob(self::__TESTDIR . "*") as $item) {
-            @unlink($item);
-        }
-
-        @rmdir(self::__TESTDIR);
-    }
-
 }

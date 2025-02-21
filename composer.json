@@ -1,5 +1,5 @@
 {
-    "name": "wruczek/php-file-cache",
+    "name": "flightphp/cache",
     "description": "Light, simple and standalone PHP in-file caching class",
     "minimum-stability": "stable",
     "license": "MIT",
@@ -7,20 +7,44 @@
         {
             "name": "Wruczek",
             "email": "wruczekk@gmail.com",
-            "homepage": "https://wruczek.tech"
-        }
+            "homepage": "https://wruczek.tech",
+			"role": "Original Author"
+        },
+		{
+			"name": "n0nag0n",
+			"email": "n0nag0n@sky-9.com",
+			"role": "Maintainer"
+		}
     ],
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=7.4"
     },
     "require-dev": {
-        "php": ">=5.6.0",
-        "phpunit/phpunit": "5.6.*"
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.0",
+        "rregeer/phpunit-coverage-check": "^0.3.1",
+        "squizlabs/php_codesniffer": "^3.11"
     },
     "autoload": {
-        "psr-4": {"Wruczek\\PhpFileCache\\": "src/"}
+        "psr-4": {"flight\\": "src/"}
     },
     "autoload-dev": {
-        "psr-4": {"Wruczek\\PhpFileCache\\": "tests/"}
+        "psr-4": {"flight\\tests\\": "tests/"}
+    },
+	"scripts": {
+		"test": "phpunit",
+		"test-coverage": "rm -f clover.xml && XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html=coverage --coverage-clover=clover.xml && vendor/bin/coverage-check clover.xml 100",
+        "test-coverage:win": "del clover.xml && phpunit --coverage-html=coverage --coverage-clover=clover.xml && coverage-check clover.xml 100",
+        "lint": "phpstan --no-progress -cphpstan.neon",
+        "beautify": "phpcbf --standard=phpcs.xml",
+        "phpcs": "phpcs --standard=phpcs.xml -n"
+	},
+	"config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        },
+        "process-timeout": 0,
+        "sort-packages": true
     }
 }

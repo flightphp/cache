@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1740111515">
+  <project timestamp="1740111515">
+    <package name="flight">
+      <file name="C:\Users\User\projects\flightphp-simple-cache\src\Cache.php">
+        <class name="flight\Cache" namespace="flight">
+          <metrics complexity="55" methods="27" coveredmethods="17" conditionals="0" coveredconditionals="0" statements="118" coveredstatements="97" elements="145" coveredelements="114"/>
+        </class>
+        <line num="67" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="69" type="stmt" count="9"/>
+        <line num="70" type="stmt" count="9"/>
+        <line num="71" type="stmt" count="9"/>
+        <line num="72" type="stmt" count="9"/>
+        <line num="74" type="stmt" count="9"/>
+        <line num="84" type="method" name="loadCacheFile" visibility="private" complexity="7" crap="10.14" count="6"/>
+        <line num="86" type="stmt" count="6"/>
+        <line num="88" type="stmt" count="6"/>
+        <line num="89" type="stmt" count="0"/>
+        <line num="92" type="stmt" count="6"/>
+        <line num="93" type="stmt" count="6"/>
+        <line num="94" type="stmt" count="6"/>
+        <line num="96" type="stmt" count="0"/>
+        <line num="98" type="stmt" count="6"/>
+        <line num="101" type="stmt" count="6"/>
+        <line num="102" type="stmt" count="0"/>
+        <line num="103" type="stmt" count="0"/>
+        <line num="107" type="stmt" count="6"/>
+        <line num="108" type="stmt" count="6"/>
+        <line num="110" type="stmt" count="6"/>
+        <line num="111" type="stmt" count="0"/>
+        <line num="112" type="stmt" count="0"/>
+        <line num="115" type="stmt" count="6"/>
+        <line num="116" type="stmt" count="0"/>
+        <line num="117" type="stmt" count="0"/>
+        <line num="120" type="stmt" count="6"/>
+        <line num="121" type="stmt" count="6"/>
+        <line num="123" type="stmt" count="6"/>
+        <line num="124" type="stmt" count="0"/>
+        <line num="125" type="stmt" count="0"/>
+        <line num="128" type="stmt" count="6"/>
+        <line num="138" type="method" name="saveCacheFile" visibility="private" complexity="3" crap="3.01" count="7"/>
+        <line num="140" type="stmt" count="7"/>
+        <line num="141" type="stmt" count="1"/>
+        <line num="144" type="stmt" count="7"/>
+        <line num="145" type="stmt" count="7"/>
+        <line num="146" type="stmt" count="7"/>
+        <line num="147" type="stmt" count="7"/>
+        <line num="148" type="stmt" count="7"/>
+        <line num="149" type="stmt" count="0"/>
+        <line num="152" type="stmt" count="7"/>
+        <line num="168" type="method" name="store" visibility="public" complexity="3" crap="3.03" count="7"/>
+        <line num="170" type="stmt" count="7"/>
+        <line num="171" type="stmt" count="0"/>
+        <line num="174" type="stmt" count="7"/>
+        <line num="175" type="stmt" count="0"/>
+        <line num="178" type="stmt" count="7"/>
+        <line num="179" type="stmt" count="7"/>
+        <line num="180" type="stmt" count="7"/>
+        <line num="181" type="stmt" count="7"/>
+        <line num="182" type="stmt" count="7"/>
+        <line num="183" type="stmt" count="7"/>
+        <line num="185" type="stmt" count="7"/>
+        <line num="186" type="stmt" count="7"/>
+        <line num="187" type="stmt" count="7"/>
+        <line num="200" type="method" name="retrieve" visibility="public" complexity="3" crap="3" count="7"/>
+        <line num="202" type="stmt" count="7"/>
+        <line num="204" type="stmt" count="7"/>
+        <line num="205" type="stmt" count="3"/>
+        <line num="208" type="stmt" count="5"/>
+        <line num="209" type="stmt" count="5"/>
+        <line num="241" type="method" name="refreshIfExpired" visibility="public" complexity="2" crap="2" count="1"/>
+        <line num="243" type="stmt" count="1"/>
+        <line num="244" type="stmt" count="1"/>
+        <line num="247" type="stmt" count="1"/>
+        <line num="259" type="method" name="eraseKey" visibility="public" complexity="2" crap="2.03" count="3"/>
+        <line num="261" type="stmt" count="3"/>
+        <line num="262" type="stmt" count="0"/>
+        <line num="265" type="stmt" count="3"/>
+        <line num="266" type="stmt" count="3"/>
+        <line num="267" type="stmt" count="3"/>
+        <line num="277" type="method" name="eraseExpired" visibility="public" complexity="5" crap="5" count="7"/>
+        <line num="279" type="stmt" count="7"/>
+        <line num="281" type="stmt" count="7"/>
+        <line num="282" type="stmt" count="7"/>
+        <line num="283" type="stmt" count="2"/>
+        <line num="284" type="stmt" count="2"/>
+        <line num="288" type="stmt" count="7"/>
+        <line num="289" type="stmt" count="2"/>
+        <line num="292" type="stmt" count="7"/>
+        <line num="302" type="method" name="clearCache" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="304" type="stmt" count="1"/>
+        <line num="305" type="stmt" count="1"/>
+        <line num="319" type="method" name="isExpired" visibility="public" complexity="3" crap="3" count="7"/>
+        <line num="321" type="stmt" count="7"/>
+        <line num="322" type="stmt" count="3"/>
+        <line num="325" type="stmt" count="7"/>
+        <line num="326" type="stmt" count="1"/>
+        <line num="329" type="stmt" count="7"/>
+        <line num="331" type="stmt" count="7"/>
+        <line num="345" type="method" name="isCached" visibility="public" complexity="2" crap="2.15" count="7"/>
+        <line num="347" type="stmt" count="7"/>
+        <line num="348" type="stmt" count="0"/>
+        <line num="351" type="stmt" count="7"/>
+        <line num="362" type="method" name="isTimestampExpired" visibility="private" complexity="1" crap="1" count="7"/>
+        <line num="364" type="stmt" count="7"/>
+        <line num="365" type="stmt" count="7"/>
+        <line num="373" type="method" name="debugCache" visibility="public" complexity="2" crap="6" count="0"/>
+        <line num="375" type="stmt" count="0"/>
+        <line num="376" type="stmt" count="0"/>
+        <line num="388" type="method" name="reloadFromDisc" visibility="public" complexity="2" crap="2" count="9"/>
+        <line num="391" type="stmt" count="9"/>
+        <line num="403" type="method" name="getStringHash" visibility="private" complexity="2" crap="2.15" count="9"/>
+        <line num="405" type="stmt" count="9"/>
+        <line num="406" type="stmt" count="0"/>
+        <line num="409" type="stmt" count="9"/>
+        <line num="422" type="method" name="stripFirstLine" visibility="private" complexity="2" crap="2.06" count="6"/>
+        <line num="424" type="stmt" count="6"/>
+        <line num="426" type="stmt" count="6"/>
+        <line num="427" type="stmt" count="0"/>
+        <line num="430" type="stmt" count="6"/>
+        <line num="440" type="method" name="getCacheDir" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="442" type="stmt" count="9"/>
+        <line num="452" type="method" name="setCacheDir" visibility="public" complexity="2" crap="2" count="9"/>
+        <line num="455" type="stmt" count="9"/>
+        <line num="456" type="stmt" count="1"/>
+        <line num="459" type="stmt" count="9"/>
+        <line num="460" type="stmt" count="9"/>
+        <line num="469" type="method" name="getCacheFilenameHashed" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="471" type="stmt" count="9"/>
+        <line num="479" type="method" name="getCacheFilename" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="481" type="stmt" count="1"/>
+        <line num="493" type="method" name="setCacheFilename" visibility="public" complexity="2" crap="2.03" count="9"/>
+        <line num="495" type="stmt" count="9"/>
+        <line num="496" type="stmt" count="0"/>
+        <line num="499" type="stmt" count="9"/>
+        <line num="500" type="stmt" count="9"/>
+        <line num="501" type="stmt" count="9"/>
+        <line num="509" type="method" name="getCacheFileExtension" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="511" type="stmt" count="9"/>
+        <line num="521" type="method" name="setCacheFileExtension" visibility="public" complexity="2" crap="2" count="9"/>
+        <line num="524" type="stmt" count="9"/>
+        <line num="525" type="stmt" count="1"/>
+        <line num="528" type="stmt" count="9"/>
+        <line num="529" type="stmt" count="9"/>
+        <line num="537" type="method" name="getCacheFilePath" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="539" type="stmt" count="9"/>
+        <line num="547" type="method" name="getCacheArray" visibility="public" complexity="1" crap="2" count="0"/>
+        <line num="549" type="stmt" count="0"/>
+        <line num="558" type="method" name="isDevMode" visibility="public" complexity="1" crap="1" count="7"/>
+        <line num="560" type="stmt" count="7"/>
+        <line num="571" type="method" name="setDevMode" visibility="public" complexity="1" crap="1" count="9"/>
+        <line num="573" type="stmt" count="9"/>
+        <line num="574" type="stmt" count="9"/>
+        <metrics loc="577" ncloc="308" classes="1" methods="27" coveredmethods="17" conditionals="0" coveredconditionals="0" statements="118" coveredstatements="97" elements="145" coveredelements="114"/>
+      </file>
+    </package>
+    <metrics files="1" loc="577" ncloc="308" classes="1" methods="27" coveredmethods="17" conditionals="0" coveredconditionals="0" statements="118" coveredstatements="97" elements="145" coveredelements="114"/>
+  </project>
+</coverage>
