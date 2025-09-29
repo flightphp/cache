@@ -128,44 +128,93 @@ class Cache
      * @return $this
      */
     protected function saveCacheFile()
-{
-		if (file_exists($this->getCacheDir()) === false) {
-			mkdir($this->getCacheDir(), 0777, true);
-		}
+    {
+        if (file_exists($this->getCacheDir()) === false) {
+            mkdir($this->getCacheDir(), 0777, true);
+        }
 
-		$cache = $this->cacheArray;
-		$cache["hash-sum"] = $this->getStringHash(serialize($cache));
-		$data = serialize($cache);
-		$firstLine = '<?php die("Access denied") ?>' . PHP_EOL;
-		$filePath = $this->getCacheFilePath();
+        $cache = $this->cacheArray;
+        $cache["hash-sum"] = $this->getStringHash(serialize($cache));
+        $data = serialize($cache);
+        $firstLine = '<?php die("Access denied") ?>' . PHP_EOL;
+        $filePath = $this->getCacheFilePath();
 
-		$fp = fopen($filePath, 'c');
-		if ($fp === false) {
-			throw new \Exception("Cannot open cache file for writing"); // @codeCoverageIgnore
-		}
+        $fp = fopen($filePath, 'c');
+        if ($fp === false) {
+            throw new \Exception("Cannot open cache file for writing"); // @codeCoverageIgnore
+        }
 
-		if (flock($fp, LOCK_EX)) {
-			ftruncate($fp, 0);
-			rewind($fp);
-			if (fwrite($fp, $firstLine . $data) === false) {
-				// @codeCoverageIgnoreStart
-				flock($fp, LOCK_UN);
-				fclose($fp);
-				throw new \Exception("Cannot write to cache file");
-				// @codeCoverageIgnoreEnd
-			}
-			fflush($fp);
-			flock($fp, LOCK_UN);
-		} else {
-			// @codeCoverageIgnoreStart
-			fclose($fp);
-			throw new \Exception("Cannot lock cache file for writing");
-			// @codeCoverageIgnoreEnd
-		}
+        if (flock($fp, LOCK_EX)) {
+            ftruncate($fp, 0);
+            rewind($fp);
+            if (fwrite($fp, $firstLine . $data) === false) {
+                // @codeCoverageIgnoreStart
+                flock($fp, LOCK_UN);
+                fclose($fp);
+                throw new \Exception("Cannot write to cache file");
+                // @codeCoverageIgnoreEnd
+            }
+            fflush($fp);
+            flock($fp, LOCK_UN);
+        } else {
+            // @codeCoverageIgnoreStart
+            fclose($fp);
+            throw new \Exception("Cannot lock cache file for writing");
+            // @codeCoverageIgnoreEnd
+        }
 
-		fclose($fp);
-		return $this;
-	}
+        fclose($fp);
+        return $this;
+    }
+
+    /**
+     * Stores $data under $key for $expiration seconds
+     * If $key is already used, then current data will be overwritten
+     *
+     * @param string $key key associated with the current data
+     * @param mixed $data data to store
+     * @param float $expiration number of seconds before the $key expires
+     * @param bool $permanent if true, this item will not be automatically cleared after expiring
+     *
+     * @throws \Exception if the file cannot be saved
+     *
+     * @return $this
+     */
+    public function set(string $key, $data, float $expiration = 60, bool $permanent = false)
+    {
+        return $this->store($key, $data, $expiration, $permanent);
+    }
+
+    /**
+     * Returns data associated with $key
+     *
+     * @param string $key The cache key
+     * @param bool $meta if true, array will be returned containing metadata alongside data itself
+     *
+     * @throws \Exception if the file cannot be saved
+     *
+     * @return mixed|null returns data if $key is valid and not expired, NULL otherwise
+     */
+    public function get(string $key, bool $meta = false)
+    {
+        return $this->retrieve($key, $meta);
+    }
+
+    /**
+     * Checks if $key is cached
+     *
+     * @param string $key The cache key
+     * @param bool $eraseExpired if true, expired data will
+     * be cleared before running this function
+     *
+     * @throws \Exception if the file cannot be saved
+     *
+     * @return bool
+     */
+    public function exists(string $key, bool $eraseExpired = true)
+    {
+        return $this->isCached($key, $eraseExpired);
+    }
 
     /**
      * Stores $data under $key for $expiration seconds
@@ -201,7 +250,7 @@ class Cache
     /**
      * Returns data associated with $key
      *
-     * @param string $key The cache key 
+     * @param string $key The cache key
      * @param bool $meta if true, array will be returned containing metadata alongside data itself
      *
      * @throws \Exception if the file cannot be saved
@@ -279,6 +328,32 @@ class Cache
     }
 
     /**
+     * Erases data associated with $key
+     *
+     * @param string $key The cache key
+     *
+     * @throws \Exception if the file cannot be saved
+     *
+     * @return bool true if $key was found and removed, false otherwise
+     */
+    public function delete(string $key)
+    {
+        return $this->eraseKey($key);
+    }
+
+    /**
+     * Clears the cache
+     *
+     * @throws \Exception if the file cannot be saved
+     *
+     * @return void
+     */
+    public function flush()
+    {
+        $this->clearCache();
+    }
+
+    /**
      * Erases expired keys from cache
      *
      * @throws \Exception if the file cannot be saved
@@ -307,8 +382,8 @@ class Cache
      * Clears the cache
      *
      * @throws \Exception if the file cannot be saved
-	 * 
-	 * @return void
+     *
+     * @return void
      */
     public function clearCache()
     {
@@ -365,7 +440,7 @@ class Cache
     /**
      * Checks if the timestamp expired
      *
-     * @param int $timestamp timestamp in milliseconds
+     * @param float $timestamp timestamp in milliseconds
      * @param float $expiration number of milliseconds after the timestamp expires
      *
      * @return bool true if the timestamp expired, false otherwise
@@ -378,10 +453,10 @@ class Cache
 
     /**
      * Prints cache file using var_dump, useful for debugging
-	 * 
-	 * @codeCoverageIgnore
-	 * 
-	 * @return void
+     *
+     * @codeCoverageIgnore
+     *
+     * @return void
      */
     public function debugCache()
     {
@@ -395,8 +470,8 @@ class Cache
      * using functions instead of constructor. (This class loads data once, when is created)
      *
      * @throws \Exception if there is a problem loading the cache
-	 * 
-	 * @return void
+     *
+     * @return void
      */
     public function reloadFromDisc()
     {

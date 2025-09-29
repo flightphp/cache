@@ -13,8 +13,11 @@ Light, simple and standalone PHP in-file caching class
 ### Requirements and Installation
 You need PHP 7.4+ for usage
 
-Require with composer:<br>
-`composer require flightphp/cache`
+Require with composer:
+
+```bash
+composer require flightphp/cache
+```
 
 ### Usage
 ```php
@@ -26,8 +29,10 @@ $cache = new Cache();
 
 $data = $cache->refreshIfExpired("simple-cache-test", function () {
     return date("H:i:s"); // return data to be cached
-}, 10);
+}, 10); // cache for 10 seconds
 
 echo "Latest cache save: $data";
 ```
-See [examples](https://github.com/flightphp/cache/tree/master/examples) for more
+
+### Documentation
+See [the documentation](https://docs.flightphp.com/awesome-plugins/php-file-cache) for full documentation.

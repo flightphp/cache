@@ -51,32 +51,32 @@ class CacheTest extends TestCase
         $this->assertSame(".test.php", $cache->getCacheFileExtension());
     }
 
-	public function testBadFileLoad()
-	{
-		mkdir(self::__TEST_DIR);
-		$result = file_put_contents(self::__TEST_DIR . md5('defaultcache1').".cache.php", "i\nam\nnot\nserialized");
-		$this->expectException(Exception::class);
-		$this->expectExceptionMessage("Cannot unserialize cache file, cache file deleted. (defaultcache1)");
-		$cache = new Cache(self::__TEST_DIR, 'defaultcache1');
-	}
+    public function testBadFileLoad()
+    {
+        mkdir(self::__TEST_DIR);
+        $result = file_put_contents(self::__TEST_DIR . md5('defaultcache1') . ".cache.php", "i\nam\nnot\nserialized");
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Cannot unserialize cache file, cache file deleted. (defaultcache1)");
+        $cache = new Cache(self::__TEST_DIR, 'defaultcache1');
+    }
 
-	public function testBadNoHashSum()
-	{
-		mkdir(self::__TEST_DIR);
-		$result = file_put_contents(self::__TEST_DIR . md5('defaultcache2').".cache.php", serialize("test"));
-		$this->expectException(Exception::class);
-		$this->expectExceptionMessage("No hash found in cache file, cache file deleted");
-		$cache = new Cache(self::__TEST_DIR, 'defaultcache2');
-	}
+    public function testBadNoHashSum()
+    {
+        mkdir(self::__TEST_DIR);
+        $result = file_put_contents(self::__TEST_DIR . md5('defaultcache2') . ".cache.php", serialize("test"));
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("No hash found in cache file, cache file deleted");
+        $cache = new Cache(self::__TEST_DIR, 'defaultcache2');
+    }
 
-	public function testBadWithInvalidHashSum()
-	{
-		mkdir(self::__TEST_DIR);
-		$result = file_put_contents(self::__TEST_DIR . md5('defaultcache2').".cache.php", serialize(['hash-sum' => 'invalid', 'data' => 'test']));
-		$this->expectException(Exception::class);
-		$this->expectExceptionMessage("Cache data miss-hashed, cache file deleted");
-		$cache = new Cache(self::__TEST_DIR, 'defaultcache2');
-	}
+    public function testBadWithInvalidHashSum()
+    {
+        mkdir(self::__TEST_DIR);
+        $result = file_put_contents(self::__TEST_DIR . md5('defaultcache2') . ".cache.php", serialize(['hash-sum' => 'invalid', 'data' => 'test']));
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Cache data miss-hashed, cache file deleted");
+        $cache = new Cache(self::__TEST_DIR, 'defaultcache2');
+    }
 
     public function testPathRequirements()
     {
@@ -99,29 +99,39 @@ class CacheTest extends TestCase
         $this->assertFalse($cache->isExpired("test"));
     }
 
-	public function testStoreAndReload()
-	{
-		$cache = new Cache(self::__TEST_DIR);
+    public function testSetGet()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
-		$cache->store("test", $this->testarray);
+        $cache->set("test", $this->testarray);
 
-		$cache->reloadFromDisc();
+        $this->assertSame($this->testarray, $cache->get("test"));
+        $this->assertFalse($cache->isExpired("test"));
+    }
 
-		$this->assertEquals($this->testarray, $cache->retrieve("test"));
-		$this->assertFalse($cache->isExpired("test"));
-	}
+    public function testStoreAndReload()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
-	public function testStoreWithExpiration()
-	{
-		$cache = new Cache(self::__TEST_DIR);
-		$cache->setDevMode(true);
-		$cache->store("test", $this->testarray);
+        $cache->store("test", $this->testarray);
 
-		$this->assertSame($this->testarray, $cache->retrieve("test"));
-		$this->assertFalse($cache->isExpired("test"));
-		usleep(200000);
-		$this->assertNull($cache->retrieve("test"));
-	}
+        $cache->reloadFromDisc();
+
+        $this->assertEquals($this->testarray, $cache->retrieve("test"));
+        $this->assertFalse($cache->isExpired("test"));
+    }
+
+    public function testStoreWithExpiration()
+    {
+        $cache = new Cache(self::__TEST_DIR);
+        $cache->setDevMode(true);
+        $cache->store("test", $this->testarray);
+
+        $this->assertSame($this->testarray, $cache->retrieve("test"));
+        $this->assertFalse($cache->isExpired("test"));
+        usleep(200000);
+        $this->assertNull($cache->retrieve("test"));
+    }
 
     public function testKeyCharacters()
     {
@@ -161,7 +171,7 @@ class CacheTest extends TestCase
         $cache = new Cache(self::__TEST_DIR);
 
         $cache->store("test", "test123", 0.1);
-		usleep(200000);
+        usleep(200000);
         $this->assertSame(1, $cache->eraseExpired());
         $this->assertNull($cache->retrieve("test"));
     }
@@ -193,20 +203,51 @@ class CacheTest extends TestCase
         $this->assertNull($cache->retrieve("test4"));
     }
 
-	public function testEraseKeyWithBadKey()
-	{
-		$cache = new Cache(self::__TEST_DIR);
-		$this->assertFalse($cache->eraseKey("test"));
-	}
+    public function testEraseKeyWithBadKey()
+    {
+        $cache = new Cache(self::__TEST_DIR);
+        $this->assertFalse($cache->eraseKey("test"));
+    }
 
-	public function testIsCachedEraseExpired()
-	{
-		$cache = new Cache(self::__TEST_DIR);
+    public function testDeleteWithGoodKey()
+    {
+        $cache = new Cache(self::__TEST_DIR);
 
-		$cache->store("test", "test123", 0.1);
-		$this->assertTrue($cache->isCached("test", true));
+        $cache->store("test", "test123");
+        $this->assertTrue($cache->delete("test"));
+        $this->assertNull($cache->retrieve("test"));
+    }
 
-		$cachedArray = $cache->getCacheArray();
-		$this->assertArrayHasKey("test", $cachedArray);
-	}
+    public function testFlush()
+    {
+        $cache = new Cache(self::__TEST_DIR);
+
+        $cache->store("test", "test123");
+        $cache->store("test2", "test123");
+        $cache->flush();
+        $this->assertNull($cache->retrieve("test"));
+        $this->assertNull($cache->retrieve("test2"));
+    }
+
+    public function testIsCachedEraseExpired()
+    {
+        $cache = new Cache(self::__TEST_DIR);
+
+        $cache->store("test", "test123", 0.1);
+        $this->assertTrue($cache->isCached("test", true));
+
+        $cachedArray = $cache->getCacheArray();
+        $this->assertArrayHasKey("test", $cachedArray);
+    }
+
+    public function testExistsEraseExpired()
+    {
+        $cache = new Cache(self::__TEST_DIR);
+
+        $cache->store("test", "test123", 0.1);
+        $this->assertTrue($cache->exists("test", true));
+
+        $cachedArray = $cache->getCacheArray();
+        $this->assertArrayHasKey("test", $cachedArray);
+    }
 }
